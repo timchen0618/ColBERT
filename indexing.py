@@ -7,11 +7,16 @@ import colbert
 import argparse
 import csv
 from tqdm import tqdm
+from pathlib import Path
 
 import json
 def read_jsonl(path):
     with open(path, 'r') as f:
         return [json.loads(line) for line in f]
+
+def read_json(path):
+    with open(path, 'r') as f:
+        return json.load(f)
 
 def read_tsv(path):
     with open(path, 'r') as f:
@@ -91,9 +96,14 @@ if __name__ == '__main__':
 
 
     if args.do_retrieval:
-        dataset_to_file = {"ambigqa": "ambiguous_qe_dev_question_only_2_to_5_ctxs.jsonl", "qampari": "qampari_dev_question_only_5_to_8_ctxs.jsonl", "ambigqa_single": "ambigqa_dev_single_answer_question_only.jsonl"}
-        data = read_jsonl(f'/scratch/hc3337/projects/autoregressive/data/questions/{dataset_to_file[args.dataset]}')
-        queries = [x['question'] if args.dataset == 'ambigqa' or args.dataset == 'ambigqa_single' else x['question_text'] for x in data]
+        if args.dataset in ["ambigqa", "ambigqa_single", "qampari", "qampari_full"]:
+            dataset_to_file = {"ambigqa": "ambiguous_qe_dev_question_only_2_to_5_ctxs.jsonl", "qampari": "qampari_dev_question_only_5_to_8_ctxs.jsonl", "ambigqa_single": "ambigqa_dev_single_answer_question_only.jsonl", "qampari_full": "dev_data_gt_qampari_corpus.jsonl"}
+            data = read_jsonl(f'/scratch/hc3337/projects/autoregressive/data/questions/{dataset_to_file[args.dataset]}')
+        elif args.dataset.endswith('.json'):
+            data = read_json(args.dataset)
+        else:
+            data = read_jsonl(args.dataset)
+        queries = [x['question_text'] if (args.dataset == 'qampari' or args.dataset == 'qampari_full') else x['question'] for x in data]
         outputs = []
 
         # To create the searcher using its relative name (i.e., not a full path), set
@@ -125,7 +135,12 @@ if __name__ == '__main__':
                     'score': passage_score
                 })
 
-        with open(f'/scratch/hc3337/projects/ColBERT/outputs/{args.dataset}.jsonl', 'w') as f:
+
+        if args.dataset in ["ambigqa", "ambigqa_single", "qampari", "qampari_full"]:
+            output_path = f'/scratch/hc3337/projects/ColBERT/outputs/{args.dataset}.jsonl'
+        else:
+            output_path = f'/scratch/hc3337/projects/ColBERT/outputs/' + str(Path(args.dataset).stem) + '_retrieved.jsonl'
+        with open(output_path, 'w') as f:
             for output in outputs:
                 f.write(json.dumps(output) + '\n')
 
