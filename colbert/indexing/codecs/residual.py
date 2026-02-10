@@ -98,7 +98,8 @@ class ResidualCodec:
     def try_load_torch_extensions(cls, use_gpu):
         if hasattr(cls, "loaded_extensions") or not use_gpu:
             return
-
+        import os
+        conda_inc = os.path.join(os.environ["CONDA_PREFIX"], "include")
         print_message(f"Loading decompress_residuals_cpp extension (set COLBERT_LOAD_TORCH_EXTENSION_VERBOSE=True for more info)...")
         decompress_residuals_cpp = load(
             name="decompress_residuals_cpp",
@@ -110,6 +111,9 @@ class ResidualCodec:
                     pathlib.Path(__file__).parent.resolve(), "decompress_residuals.cu"
                 ),
             ],
+            extra_include_paths=[conda_inc],
+            extra_cflags=[f"-I{conda_inc}"],
+            extra_cuda_cflags=[f"-I{conda_inc}"],
             verbose=os.getenv("COLBERT_LOAD_TORCH_EXTENSION_VERBOSE", "False") == "True",
         )
         cls.decompress_residuals = decompress_residuals_cpp.decompress_residuals_cpp

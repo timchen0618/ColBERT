@@ -12,8 +12,6 @@ dependencies:
   - torchaudio=0.13.1
   - torchvision=0.14.1
   - cudatoolkit=11.3
-  - gcc=9.4.0
-  - gxx=9.4.0
   - pip:
     - bitarray
     - datasets
