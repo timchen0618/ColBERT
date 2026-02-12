@@ -1,6 +1,7 @@
 from datasets import load_dataset
 from colbert import Indexer, Searcher
 from colbert.infra import Run, RunConfig, ColBERTConfig
+from colbert import Trainer
 from colbert.data import Queries, Collection
 import colbert
 
@@ -138,9 +139,9 @@ if __name__ == '__main__':
 
 
         if args.dataset in ["ambigqa", "ambigqa_single", "qampari", "qampari_full"]:
-            output_path = f'/scratch/hc3337/projects/ColBERT/outputs/{args.dataset}.jsonl'
+            output_path = f'/scratch/dq2024/ColBERT/outputs/{args.dataset}.jsonl'
         else:
-            output_path = f'/scratch/hc3337/projects/ColBERT/outputs/' + str(Path(args.dataset).stem) + '_retrieved.jsonl'
+            output_path = f'/scratch/dq2024/ColBERT/outputs/' + str(Path(args.dataset).stem) + '_retrieved.jsonl'
         with open(output_path, 'w') as f:
             for output in outputs:
                 f.write(json.dumps(output) + '\n')
@@ -149,5 +150,41 @@ if __name__ == '__main__':
         print(f"Time taken to retrieve: {after_generating_embeddings-start_time:.2f} seconds")
 
     if args.do_training:
-        # To train ColBERT, you can use the `colbert-train` command-line tool. See the ColBERT README for details.
-        pass
+        print(f'Starting ColBERTv2 Training on QAMPARI')
+        
+        with Run().context(RunConfig(nranks=args.nranks, experiment='qampari')):
+            config = ColBERTConfig(
+                bsize=32,                       
+                lr=1e-05,                      
+                warmup=20_000,                 
+                doc_maxlen=180,                
+                dim=128,                       
+                attend_to_mask_tokens=False,  
+                nway=64,                        # Number of negatives (1 hard + 63 in-batch)
+                accumsteps=1,                  
+                similarity='cosine',           
+                use_ib_negatives=True,          
+                root="/scratch/dq2024/ColBERT/experiments"
+            )
+            
+            print(f'Configuration:')
+            print(f'  - Batch size: {config.bsize}')
+            print(f'  - Learning rate: {config.lr}')
+            print(f'  - Warmup steps: {config.warmup}')
+            print(f'  - Doc maxlen: {config.doc_maxlen}')
+            print(f'  - Embedding dim: {config.dim}')
+            print(f'  - N-way (negatives): {config.nway}')
+            print(f'  - In-batch negatives: {config.use_ib_negatives}')
+            print(f'  - Number of GPUs: {args.nranks}\n')
+            
+            trainer = Trainer(
+                triples="/scratch/dq2024/ColBERT/data/qampari_train_triples.jsonl",
+                queries="/scratch/dq2024/ColBERT/data/qampari_train_queries.tsv",
+                collection=corpus_path,  # Full Wikipedia corpus
+                config=config,
+            )
+            
+            print('Starting training from colbert-ir/colbertv1.9 checkpoint...\n')
+            checkpoint_path = trainer.train(checkpoint='colbert-ir/colbertv1.9')
+            
+            print(f'Training Done. Saved checkpoint to: {checkpoint_path}')

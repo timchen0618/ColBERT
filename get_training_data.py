@@ -1,5 +1,6 @@
 import json
 import csv
+import random
 from tqdm import tqdm
 from pathlib import Path
 
@@ -18,48 +19,11 @@ def write_tsv(path, data):
         writer.writerows(data)
 
 def create_qampari_training_files():
-    # Load training data
+    # Set random seed for reproducibility
+    random.seed(42)
+    
     train_data = read_jsonl('/scratch/dq2024/diverse_retriever/train_data.jsonl')
     print(f'Loaded {len(train_data)} training examples')
-    
-    
-    all_passages = {}  # {pid: text}
-    
-    print("Collecting all passages from training data...")
-    for item in tqdm(train_data):
-        # Collect from positive contexts
-        for ctx in item.get('positive_ctxs', []):
-            pid = ctx['id']
-            text = ctx['text']
-            all_passages[pid] = text
-        
-        # Collect from negative contexts
-        for ctx in item.get('negative_ctxs', []):
-            pid = ctx['id']
-            text = ctx['text']
-            all_passages[pid] = text
-        
-        # Collect from ground truths
-        for ctx in item.get('ground_truths', []):
-            pid = ctx['id']
-            text = ctx['text']
-            all_passages[pid] = text
-        
-        # Collect from hard negatives
-        for ctx in item.get('hard_negative_ctxs', []):
-            pid = ctx['id']
-            text = ctx['text']
-            all_passages[pid] = text
-    
-    print(f'Collected {len(all_passages)} unique passages')
-    
-    # Create collection.tsv
-    collection_tsv = []
-    for pid, text in all_passages.items():
-        collection_tsv.append([pid, text])
-    
-    write_tsv('/scratch/hc3337/projects/ColBERT/data/qampari_train_collection.tsv', collection_tsv)
-    print(f'Created collection.tsv with {len(collection_tsv)} passages')
     
     # Create queries.tsv
     queries_tsv = []
@@ -68,55 +32,62 @@ def create_qampari_training_files():
         query_text = item['question_text']
         queries_tsv.append([str(qid), query_text])
     
-    write_tsv('/scratch/hc3337/projects/ColBERT/data/qampari_train_queries.tsv', queries_tsv)
+    output_dir = Path('/scratch/dq2024/ColBERT/data')
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    write_tsv(output_dir / 'qampari_train_queries.tsv', queries_tsv)
     print(f'Created queries.tsv with {len(queries_tsv)} queries')
     
     # Create triples.jsonl
+    # Format: [qid, positive_pid, negative_pid]
+    # We randomly sample 1 negative per positive, in-batch negatives will provide more
     triples = []
+    queries_without_data = 0
     
     for i, item in enumerate(tqdm(train_data, desc="Creating triples")):
         qid = i
         
-        # Get positive passage IDs
+        # Get positive passage IDs (positive_ctxs and ground_truths are the same)
         positive_pids = []
         for pos_ctx in item.get('positive_ctxs', []):
-            positive_pids.append(pos_ctx['id'])
-        
-        # Also include ground truths as positives
-        for gt_ctx in item.get('ground_truths', []):
-            pid = gt_ctx['id']
+            pid = pos_ctx['id']
             if pid not in positive_pids:
                 positive_pids.append(pid)
         
-        # Get negative passage IDs
+        # Get negative passage IDs (no hard negatives in your data)
         negative_pids = []
         for neg_ctx in item.get('negative_ctxs', []):
-            negative_pids.append(neg_ctx['id'])
-        
-        # Add hard negatives if available
-        for hard_neg_ctx in item.get('hard_negative_ctxs', []):
-            pid = hard_neg_ctx['id']
+            pid = neg_ctx['id']
             if pid not in negative_pids:
                 negative_pids.append(pid)
         
-        # Create triples: [qid, positive_pid, negative_pid]
+        # Create triples: randomly sample 1 negative per positive
+        # In-batch negatives will provide additional negatives during training
         if positive_pids and negative_pids:
             for pos_pid in positive_pids:
-                # Sample up to 5 negatives per positive
-                for neg_pid in negative_pids[:5]:
-                    triples.append([qid, pos_pid, neg_pid])
-        elif not positive_pids:
-            print(f'Warning: Query {qid} has no positive passages')
-        elif not negative_pids:
-            print(f'Warning: Query {qid} has no negative passages')
+                # Randomly sample one negative for this positive
+                neg_pid = random.choice(negative_pids)
+                triples.append([qid, pos_pid, neg_pid])
+        else:
+            queries_without_data += 1
+            if not positive_pids:
+                print(f'Warning: Query {qid} has no positive passages')
+            if not negative_pids:
+                print(f'Warning: Query {qid} has no negative passages')
     
     # Write triples to JSONL
-    with open('/scratch/hc3337/projects/ColBERT/data/qampari_train_triples.jsonl', 'w') as f:
+    with open(output_dir / 'qampari_train_triples.jsonl', 'w') as f:
         for triple in triples:
             f.write(json.dumps(triple) + '\n')
     
-    print(f'Created triples.jsonl with {len(triples)} triples')
+    print(f'\nCreated triples.jsonl with {len(triples)} triples')
+    print(f'Queries without sufficient data: {queries_without_data}')
     print(f'Average triples per query: {len(triples) / len(train_data):.2f}')
+    print(f'\nFiles created in: {output_dir}')
+    print(f'  - qampari_train_queries.tsv')
+    print(f'  - qampari_train_triples.jsonl')
+    print(f'\nNote: Each positive passage is paired with a randomly sampled negative.')
+    print(f'      In-batch negatives will provide {63} additional negatives during training.')
 
 if __name__ == '__main__':
     create_qampari_training_files()
