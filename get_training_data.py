@@ -4,9 +4,21 @@ import random
 from tqdm import tqdm
 from pathlib import Path
 
-def read_jsonl(path):
-    with open(path, 'r') as f:
-        return [json.loads(line) for line in f]
+def read_jsonl(file_path):
+    data = []
+    error_count = 0
+    with open(file_path, 'r') as file:
+        for line_num, line in enumerate(file, 1):
+            try:
+                example = json.loads(line)
+                data.append(example)
+            except json.JSONDecodeError:
+                error_count += 1
+                print(f"Warning: Skipping malformed JSON at line {line_num} in {file_path}")
+                continue
+    if error_count > 0:
+        print(f"Total malformed lines skipped: {error_count}")
+    return data
 
 def read_tsv(path):
     with open(path, 'r') as f:
