@@ -157,7 +157,7 @@ if __name__ == '__main__':
                 bsize=32,                       
                 lr=1e-05,                      
                 warmup=20_000,                 
-                doc_maxlen=180,                
+                doc_maxlen=doc_maxlen,                
                 dim=128,                       
                 attend_to_mask_tokens=False,  
                 nway=64,                        # Number of negatives (1 hard + 63 in-batch)
