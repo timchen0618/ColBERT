@@ -175,7 +175,6 @@ if __name__ == '__main__':
             print(f'  - Embedding dim: {config.dim}')
             print(f'  - N-way (negatives): {config.nway}')
             print(f'  - In-batch negatives: {config.use_ib_negatives}')
-            print(f'  - Number of GPUs: {args.nranks}\n')
             
             trainer = Trainer(
                 triples="/scratch/dq2024/ColBERT/data/qampari_train_triples.jsonl",
