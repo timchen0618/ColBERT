@@ -8,7 +8,6 @@
 #SBATCH --job-name=eval
 #SBATCH --output=/scratch/dq2024/ColBERT/get_data.out
 #SBATCH --account=torch_pr_152_courant
-#SBATCH --gres=gpu:1
 
 
 if [[ -e /dev/nvidia0 ]]; then nv="--nv"; fi
