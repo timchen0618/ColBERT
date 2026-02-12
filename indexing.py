@@ -33,13 +33,14 @@ if __name__ == '__main__':
     parser.add_argument('--do_indexing', action='store_true')
     parser.add_argument('--do_retrieval', action='store_true')
     parser.add_argument('--do_processing', action='store_true')
+    parser.add_argument('--do_training', action='store_true')
     parser.add_argument('--dataset', type=str, default='ambigqa')
     args = parser.parse_args()
     import time
     start_time = time.time()
 
     if args.do_processing:
-        corpus_path = '/scratch/hc3337/wikipedia_chunks/chunks_v5.tsv'
+        corpus_path = '/scratch/dq2024/diverse_retriever/chunks_v5.tsv'
         corpus = read_tsv(corpus_path)
         print(f'Loaded {len(corpus)} passages')
         for i, c in enumerate(tqdm(corpus)):
@@ -51,7 +52,7 @@ if __name__ == '__main__':
 
         corpus.pop(0)
 
-        write_tsv('/scratch/hc3337/wikipedia_chunks/colbert_chunks_v5.tsv', corpus)
+        write_tsv('/scratch/dq2024/wikipedia_chunks/colbert_chunks_v5.tsv', corpus)
 
     # #### Loading data ####
     # dataset = 'lifestyle'
@@ -81,7 +82,7 @@ if __name__ == '__main__':
     # filtered_queries = [q for q, apids in zip(queries, answer_pids) if any(x < max_id for x in apids)]
     # print(f'Filtered down to {len(filtered_queries)} queries')
     # corpus_path = '/scratch/hc3337/wikipedia_chunks/colbert_chunks_v5.tsv'
-    corpus_path = '/scratch/hc3337/wikipedia_chunks/colbert_chunks_v5.tsv'
+    corpus_path = '/scratch/dq2024/wikipedia_chunks/colbert_chunks_v5.tsv'
     index_name = 'wikipedia.chunks_v5.2bits'
 
     if args.do_indexing:
@@ -146,3 +147,7 @@ if __name__ == '__main__':
 
         after_generating_embeddings = time.time()
         print(f"Time taken to retrieve: {after_generating_embeddings-start_time:.2f} seconds")
+
+    if args.do_training:
+        # To train ColBERT, you can use the `colbert-train` command-line tool. See the ColBERT README for details.
+        pass
