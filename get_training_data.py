@@ -26,8 +26,8 @@ def read_tsv(path):
         return list(reader)
 
 def write_tsv(path, data):
-    with open(path, 'w') as f:
-        writer = csv.writer(f, delimiter='\t')
+    with open(path, 'w', newline='') as f:
+        writer = csv.writer(f, delimiter='\t', lineterminator='\n')
         writer.writerows(data)
 
 def create_qampari_training_files():
