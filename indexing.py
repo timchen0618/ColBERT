@@ -160,7 +160,7 @@ if __name__ == '__main__':
                 doc_maxlen=doc_maxlen,                
                 dim=128,                       
                 attend_to_mask_tokens=False,  
-                nway=64,                        # Number of negatives (1 hard + 63 in-batch)
+                nway=2,                        # Number of negatives (1 hard + 63 in-batch)
                 accumsteps=1,                  
                 similarity='cosine',           
                 use_ib_negatives=True,          
