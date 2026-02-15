@@ -4,29 +4,21 @@ import random
 from tqdm import tqdm
 from pathlib import Path
 
-def read_jsonl(file_path):
+def read_jsonl(path):
     data = []
-    error_count = 0
-    with open(file_path, 'r') as file:
-        for line_num, line in enumerate(file, 1):
-            try:
-                example = json.loads(line)
-                data.append(example)
-            except json.JSONDecodeError:
-                error_count += 1
-                print(f"Warning: Skipping malformed JSON at line {line_num} in {file_path}")
+    with open(path, 'r', encoding='utf-8') as f:
+        for line_num, line in enumerate(f, 1):
+            line = line.strip()
+            if not line:
                 continue
-    if error_count > 0:
-        print(f"Total malformed lines skipped: {error_count}")
+            try:
+                data.append(json.loads(line))
+            except json.JSONDecodeError as e:
+                print(f"Warning: Skipping malformed JSON at line {line_num}")
     return data
 
-def read_tsv(path):
-    with open(path, 'r') as f:
-        reader = csv.reader(f, delimiter='\t')
-        return list(reader)
-
 def write_tsv(path, data):
-    with open(path, 'w', newline='') as f:
+    with open(path, 'w', encoding='utf-8', newline='') as f:
         writer = csv.writer(f, delimiter='\t', lineterminator='\n')
         writer.writerows(data)
 
@@ -37,55 +29,74 @@ def create_qampari_training_files():
     train_data = read_jsonl('/scratch/dq2024/diverse_retriever/train_data.jsonl')
     print(f'Loaded {len(train_data)} training examples')
     
-    # Create queries.tsv
+    # Create mapping from original index to new index (filtering empty queries)
+    valid_indices = {}
+    new_qid = 0
+    
+    # Create queries.tsv - only include queries with non-empty text
     queries_tsv = []
+    empty_queries = []
+    
     for i, item in enumerate(tqdm(train_data, desc="Creating queries")):
-        qid = i
-        query_text = item['question_text']
-        queries_tsv.append([str(qid), query_text])
+        query_text = item.get('question_text', '').strip()
+        
+        # Skip empty queries
+        if not query_text:
+            empty_queries.append(i)
+            print(f'Skipping empty query at original index {i}')
+            continue
+        
+        # Remove tabs, newlines from query text
+        query_text = query_text.replace('\t', ' ').replace('\n', ' ').replace('\r', ' ')
+        
+        # Map old index to new index
+        valid_indices[i] = new_qid
+        queries_tsv.append([str(new_qid), query_text])
+        new_qid += 1
     
     output_dir = Path('/scratch/dq2024/ColBERT/data')
     output_dir.mkdir(parents=True, exist_ok=True)
     
     write_tsv(output_dir / 'qampari_train_queries.tsv', queries_tsv)
-    print(f'Created queries.tsv with {len(queries_tsv)} queries')
+    print(f'\nCreated queries.tsv with {len(queries_tsv)} queries')
+    print(f'Skipped {len(empty_queries)} queries with empty text: {empty_queries}')
     
-    # Create triples.jsonl
-    # Format: [qid, positive_pid, negative_pid]
-    # We randomly sample 1 negative per positive, in-batch negatives will provide more
+    # Create triples.jsonl - only for valid queries
     triples = []
     queries_without_data = 0
     
     for i, item in enumerate(tqdm(train_data, desc="Creating triples")):
-        qid = i
+        # Skip if query was filtered out
+        if i not in valid_indices:
+            continue
         
-        # Get positive passage IDs (positive_ctxs and ground_truths are the same)
+        qid = valid_indices[i]  # Use new QID
+        
+        # Get positive passage IDs
         positive_pids = []
         for pos_ctx in item.get('positive_ctxs', []):
-            pid = pos_ctx['id']
-            if pid not in positive_pids:
+            pid = pos_ctx.get('id', '').strip()
+            if pid and pid not in positive_pids:
                 positive_pids.append(pid)
         
-        # Get negative passage IDs (no hard negatives in your data)
+        # Get negative passage IDs
         negative_pids = []
         for neg_ctx in item.get('negative_ctxs', []):
-            pid = neg_ctx['id']
-            if pid not in negative_pids:
+            pid = neg_ctx.get('id', '').strip()
+            if pid and pid not in negative_pids:
                 negative_pids.append(pid)
         
-        # Create triples: randomly sample 1 negative per positive
-        # In-batch negatives will provide additional negatives during training
+        # Create triples
         if positive_pids and negative_pids:
             for pos_pid in positive_pids:
-                # Randomly sample one negative for this positive
                 neg_pid = random.choice(negative_pids)
                 triples.append([qid, pos_pid, neg_pid])
         else:
             queries_without_data += 1
             if not positive_pids:
-                print(f'Warning: Query {qid} has no positive passages')
+                print(f'Warning: Query {qid} (original {i}) has no positive passages')
             if not negative_pids:
-                print(f'Warning: Query {qid} has no negative passages')
+                print(f'Warning: Query {qid} (original {i}) has no negative passages')
     
     # Write triples to JSONL
     with open(output_dir / 'qampari_train_triples.jsonl', 'w') as f:
@@ -94,12 +105,12 @@ def create_qampari_training_files():
     
     print(f'\nCreated triples.jsonl with {len(triples)} triples')
     print(f'Queries without sufficient data: {queries_without_data}')
-    print(f'Average triples per query: {len(triples) / len(train_data):.2f}')
+    print(f'Average triples per valid query: {len(triples) / len(queries_tsv):.2f}')
     print(f'\nFiles created in: {output_dir}')
-    print(f'  - qampari_train_queries.tsv')
-    print(f'  - qampari_train_triples.jsonl')
+    print(f'  - qampari_train_queries.tsv ({len(queries_tsv)} queries)')
+    print(f'  - qampari_train_triples.jsonl ({len(triples)} triples)')
     print(f'\nNote: Each positive passage is paired with a randomly sampled negative.')
-    print(f'      In-batch negatives will provide {63} additional negatives during training.')
+    print(f'      In-batch negatives will provide 63 additional negatives during training.')
 
 if __name__ == '__main__':
     create_qampari_training_files()
