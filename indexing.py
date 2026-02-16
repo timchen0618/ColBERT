@@ -152,7 +152,7 @@ if __name__ == '__main__':
     if args.do_training:
         print(f'Starting ColBERTv2 Training on QAMPARI')
         
-        with Run().context(RunConfig(nranks=4, experiment='qampari')):
+        with Run().context(RunConfig(nranks=4, experiment='qampari_colbertv2.0')):
             config = ColBERTConfig(
                 bsize=32,                       
                 lr=1e-05,                      
@@ -184,6 +184,6 @@ if __name__ == '__main__':
             )
             
             print('Starting training from colbert-ir/colbertv1.9 checkpoint...\n')
-            checkpoint_path = trainer.train(checkpoint='colbert-ir/colbertv1.9')
+            checkpoint_path = trainer.train(checkpoint='colbert-ir/colbertv2.0')
             
             print(f'Training Done. Saved checkpoint to: {checkpoint_path}')
