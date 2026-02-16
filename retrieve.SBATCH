@@ -9,7 +9,7 @@
 #SBATCH --mail-user=dq2024@nyu.edu
 #SBATCH --output=retrieve_round1_top6_concatenated_colbert.out
 #SBATCH --account=torch_pr_152_courant
-#SBATCH --gres=gpu:4
+#SBATCH --gres=gpu:2
 
 SINGULARITY_IMAGE=/share/apps/images/cuda12.8.1-cudnn9.8.0-ubuntu24.04.2.sif
 OVERLAY_FILE=/scratch/dq2024/colbert.ext3

@@ -152,9 +152,9 @@ if __name__ == '__main__':
     if args.do_training:
         print(f'Starting ColBERTv2 Training on QAMPARI')
         
-        with Run().context(RunConfig(nranks=4, experiment='qampari_colbertv2.0_lr1e-5')):
+        with Run().context(RunConfig(nranks=2, experiment='qampari_colbertv2.0_lr1e-5')):
             config = ColBERTConfig(
-                bsize=32,                       
+                bsize=64,                       
                 lr=1e-05,                      
                 warmup=20_000,                 
                 doc_maxlen=doc_maxlen,                
