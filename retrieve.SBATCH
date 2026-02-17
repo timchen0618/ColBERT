@@ -7,7 +7,7 @@
 #SBATCH --job-name=train_colbert
 #SBATCH --mail-type=END
 #SBATCH --mail-user=dq2024@nyu.edu
-#SBATCH --output=retrieve_round1_top6_concatenated_colbert.out
+#SBATCH --output=round1_retr.out
 #SBATCH --account=torch_pr_152_courant
 #SBATCH --gres=gpu:1
 
