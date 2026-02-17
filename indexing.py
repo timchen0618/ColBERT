@@ -88,7 +88,9 @@ if __name__ == '__main__':
 
     if args.do_indexing:
         print('Indexing...')
-        checkpoint = 'colbert-ir/colbertv2.0'
+        index_name = 'wikipedia.qampari_colbertv2.0_lr5e-6_chunks_v5.2bits'
+        #checkpoint = 'colbert-ir/colbertv2.0'
+        checkpoint = '/scratch/dq2024/ColBERT/experiments/qampari_colbertv2.0_lr5e-6/none/2026-02/16/21.54.40/checkpoints/colbert/'
         with Run().context(RunConfig(nranks=1, experiment='wikipedia')):  # nranks specifies the number of GPUs to use
             config = ColBERTConfig(doc_maxlen=doc_maxlen, nbits=nbits, kmeans_niters=4) # kmeans_niters specifies the number of iterations of k-means clustering; 4 is a good and fast default.
                                                                                         # Consider larger numbers for small datasets.
