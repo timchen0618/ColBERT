@@ -15,4 +15,4 @@ SINGULARITY_IMAGE=/share/apps/images/cuda12.8.1-cudnn9.8.0-ubuntu24.04.2.sif
 OVERLAY_FILE=/scratch/dq2024/colbert.ext3
 
 
-singularity exec --nv --overlay ${OVERLAY_FILE}:ro $SINGULARITY_IMAGE /bin/bash -c "source /ext3/env.sh; cd /scratch/dq2024/ColBERT/; conda activate colbert; python indexing.py --do_retrieval --dataset /scratch/dq2024/ColBERT/data/round1.json" 
+singularity exec --nv --overlay ${OVERLAY_FILE}:ro $SINGULARITY_IMAGE /bin/bash -c "source /ext3/env.sh; cd /scratch/dq2024/ColBERT/; conda activate colbert; python indexing.py --do_retrieval --dataset /scratch/dq2024/diverse_retriever/data/qampari_data/nqformat_data/qampari_dev_2nd_stage_qampari_corpus_concat_query_inp0.json" 
