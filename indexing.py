@@ -83,7 +83,8 @@ if __name__ == '__main__':
     # filtered_queries = [q for q, apids in zip(queries, answer_pids) if any(x < max_id for x in apids)]
     # print(f'Filtered down to {len(filtered_queries)} queries')
     # corpus_path = '/scratch/hc3337/wikipedia_chunks/colbert_chunks_v5.tsv'
-    corpus_path = '/scratch/dq2024/wikipedia_chunks/colbert_chunks_v5.tsv'
+   # corpus_path = '/scratch/dq2024/wikipedia_chunks/colbert_chunks_v5.tsv'
+    corput_path = '/scratch/dq2024/diverse_retriever/chunks_v5.tsv'
     index_name = 'wikipedia.chunks_v5.2bits'
 
     if args.do_indexing:
@@ -119,7 +120,7 @@ if __name__ == '__main__':
             print(f"#> {query}")
 
             # Find the top-3 passages for this query
-            results = searcher.search(query, k=500)
+            results = searcher.search(query, k=100)
 
             # ['id', 'title', 'text', 'score']
             outputs.append({
