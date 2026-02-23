@@ -100,6 +100,7 @@ def create_qampari_training_files():
             queries_without_data += 1
     
     # Write triples
+    random.shuffle(triples)
     with open(output_dir / 'qampari_train_triples.jsonl', 'w') as f:
         for triple in triples:
             f.write(json.dumps(triple) + '\n')

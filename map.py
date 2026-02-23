@@ -17,12 +17,10 @@ print(f'Loaded {len(corpus)} passages')
 pid_to_index = {}
 
 for i, row in enumerate(tqdm(corpus, desc="Building PID mapping")):
-    if i == 0:  # Skip header if present
-        continue
     
     if len(row) >= 2:
-        string_pid = row[0] 
-        index = i - 1  # 0-indexed (skip header)
+        string_pid = row[0]  # "0", "1", "2"...
+        index = int(string_pid)  
         pid_to_index[string_pid] = index
 
 print(f'Created mapping for {len(pid_to_index)} passages')
