@@ -120,7 +120,7 @@ if __name__ == '__main__':
             print(f"#> {query}")
 
             # Find the top-3 passages for this query
-            results = searcher.search(query, k=100)
+            results = searcher.search(query, k=500)
 
             # ['id', 'title', 'text', 'score']
             outputs.append({
@@ -155,10 +155,10 @@ if __name__ == '__main__':
     if args.do_training:
         print(f'Starting ColBERTv2 Training on QAMPARI')
         
-        with Run().context(RunConfig(nranks=2, experiment='qampari_colbertv2.0_lr5e-6')):
+        with Run().context(RunConfig(nranks=2, experiment='qampari_colbertv2.0_lr1e-5')):
             config = ColBERTConfig(
                 bsize=64,                       
-                lr=5e-6,                      
+                lr=1e-5,                      
                 warmup=20_000,                 
                 doc_maxlen=doc_maxlen,                
                 dim=128,                       
