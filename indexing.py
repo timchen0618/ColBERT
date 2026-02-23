@@ -83,8 +83,8 @@ if __name__ == '__main__':
     # filtered_queries = [q for q, apids in zip(queries, answer_pids) if any(x < max_id for x in apids)]
     # print(f'Filtered down to {len(filtered_queries)} queries')
     # corpus_path = '/scratch/hc3337/wikipedia_chunks/colbert_chunks_v5.tsv'
-   # corpus_path = '/scratch/dq2024/wikipedia_chunks/colbert_chunks_v5.tsv'
-    corput_path = '/scratch/dq2024/diverse_retriever/chunks_v5.tsv'
+    corpus_path = '/scratch/dq2024/wikipedia_chunks/colbert_chunks_v5.tsv'
+    #corput_path = '/scratch/dq2024/diverse_retriever/chunks_v5.tsv'
     index_name = 'wikipedia.chunks_v5.2bits'
 
     if args.do_indexing:
@@ -103,7 +103,7 @@ if __name__ == '__main__':
     if args.do_retrieval:
         if args.dataset in ["ambigqa", "ambigqa_single", "qampari", "qampari_full"]:
             dataset_to_file = {"ambigqa": "ambiguous_qe_dev_question_only_2_to_5_ctxs.jsonl", "qampari": "qampari_dev_question_only_5_to_8_ctxs.jsonl", "ambigqa_single": "ambigqa_dev_single_answer_question_only.jsonl", "qampari_full": "dev_data_gt_qampari_corpus.jsonl"}
-            data = read_jsonl(f'/scratch/dq2024/diverse_retriever/data/qampari_data/nqformat_data/qampari_dev_2nd_stage_qampari_corpus_concat_query_inp0.json')
+            data = read_jsonl(f'/scratch/dq2024/diverse_retriever/data/{dataset_to_file[args.dataset]}')
         elif args.dataset.endswith('.json'):
             data = read_json(args.dataset)
         else:
