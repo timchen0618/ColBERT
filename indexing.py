@@ -120,7 +120,7 @@ if __name__ == '__main__':
             print(f"#> {query}")
 
             # Find the top-3 passages for this query
-            results = searcher.search(query, k=500)
+            results = searcher.search(query, k=100)
 
             # ['id', 'title', 'text', 'score']
             outputs.append({
