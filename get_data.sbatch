@@ -20,5 +20,5 @@ singularity exec ${nv} \
 source /ext3/env.sh; 
 conda activate colbert;
 
-python /scratch/dq2024/ColBERT/map.py
+python /scratch/dq2024/ColBERT/get_training_data.py
 "
