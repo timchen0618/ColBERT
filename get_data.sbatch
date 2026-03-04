@@ -4,7 +4,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --tasks-per-node=1
 #SBATCH --time=2:00:00
-#SBATCH --mem=32GB
+#SBATCH --mem=200GB
 #SBATCH --job-name=colbert_data
 #SBATCH --output=/scratch/dq2024/ColBERT/get_data.out
 #SBATCH --account=torch_pr_152_courant
