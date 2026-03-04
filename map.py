@@ -10,18 +10,20 @@ def read_tsv(path):
 
 # Load original chunks file
 print('Loading original chunks file...')
-corpus = read_tsv('/scratch/dq2024/wikipedia_chunks/colbert_chunks_v5.tsv')
+corpus = read_tsv('/scratch/dq2024/wikipedia_chunks/chunks_v5.tsv')
 print(f'Loaded {len(corpus)} passages')
 
-# Create mapping from string PID to integer index
+# Create mapping from complex PID to integer index
 pid_to_index = {}
 
 for i, row in enumerate(tqdm(corpus, desc="Building PID mapping")):
+    if i == 0:  # Skip header row
+        continue
     
     if len(row) >= 2:
-        string_pid = row[0]  # "0", "1", "2"...
-        index = int(string_pid)  
-        pid_to_index[string_pid] = index
+        complex_pid = row[0]  # e.g., "32374689__0"
+        index = i - 1  # Row 1 -> index 0, Row 2 -> index 1, etc.
+        pid_to_index[complex_pid] = index
 
 print(f'Created mapping for {len(pid_to_index)} passages')
 
