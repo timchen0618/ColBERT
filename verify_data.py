@@ -11,10 +11,15 @@ def read_tsv(path):
 
 def read_jsonl(path):
     data = []
-    with open(path, 'r') as f:
-        for line in f:
-            if line.strip():
+    with open(path, 'r', encoding='utf-8') as f:
+        for line_num, line in enumerate(f, 1):
+            line = line.strip()
+            if not line:
+                continue
+            try:
                 data.append(json.loads(line))
+            except json.JSONDecodeError as e:
+                print(f"Warning: Skipping malformed JSON at line {line_num}")
     return data
 
 def verify_training_setup():
