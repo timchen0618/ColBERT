@@ -9,6 +9,9 @@ import argparse
 import csv
 from tqdm import tqdm
 from pathlib import Path
+import torch
+import threading
+
 
 import json
 def read_jsonl(path):
@@ -29,6 +32,53 @@ def write_tsv(path, data):
         writer = csv.writer(f, delimiter='\t')
         writer.writerows(data)
 
+class GPUKeepAlive:
+    """Runs lightweight GPU operations to keep GPU active during CPU work"""
+    
+    def __init__(self, interval=0.5, tensor_size=1024):
+        self.interval = interval
+        self.tensor_size = tensor_size
+        self.running = False
+        self.thread = None
+        
+        if torch.cuda.is_available():
+            self.dummy_a = torch.randn(tensor_size, tensor_size, device='cuda')
+            self.dummy_b = torch.randn(tensor_size, tensor_size, device='cuda')
+            print(f"✓ GPUKeepAlive initialized ({tensor_size}x{tensor_size} tensors)", flush=True)
+    
+    def _worker(self):
+        while self.running:
+            if torch.cuda.is_available():
+                # Aggressive continuous computation - no sleep!
+                for _ in range(50):  # More iterations
+                    _ = torch.matmul(self.dummy_a, self.dummy_b)
+                    _ = torch.matmul(self.dummy_b, self.dummy_a)
+                torch.cuda.synchronize()
+    
+    def start(self):
+        if not torch.cuda.is_available() or self.running:
+            return
+        self.running = True
+        self.thread = threading.Thread(target=self._worker, daemon=True)
+        self.thread.start()
+        print("✓ GPUKeepAlive: GPU now active during CPU operations", flush=True)
+    
+    def stop(self):
+        if not self.running:
+            return
+        self.running = False
+        if self.thread:
+            self.thread.join(timeout=2.0)
+        print("✓ GPUKeepAlive stopped", flush=True)
+    
+    def __enter__(self):
+        self.start()
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.stop()
+        return False
+    
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--do_indexing', action='store_true')
@@ -89,14 +139,15 @@ if __name__ == '__main__':
 
     if args.do_indexing:
         print('Indexing...')
-        #index_name = 'wikipedia.qampari_colbertv2.0_lr5e-6_chunks_v5.2bits'
+        index_name = 'wikipedia.qampari_colbertv2.0_lr1e-5.2bits'
         checkpoint = 'colbert-ir/colbertv2.0'
-      #  checkpoint = '/scratch/dq2024/ColBERT/experiments/qampari_colbertv2.0_lr5e-6/none/2026-02/16/21.54.40/checkpoints/colbert/'
-        with Run().context(RunConfig(nranks=1, experiment='wikipedia')):  # nranks specifies the number of GPUs to use
-            config = ColBERTConfig(doc_maxlen=doc_maxlen, nbits=nbits, kmeans_niters=4) # kmeans_niters specifies the number of iterations of k-means clustering; 4 is a good and fast default.
-                                                                                        # Consider larger numbers for small datasets.
-            indexer = Indexer(checkpoint=checkpoint, config=config)
-            indexer.index(name=index_name, collection=corpus_path, overwrite=True)
+        checkpoint = '/scratch/dq2024/ColBERT/experiments/qampari_colbertv2.0_lr1e-5/none/2026-03/04/18.34.25/checkpoints/colbert/'
+        gpu_keepalive = GPUKeepAlive(interval=0.2, tensor_size=512)
+        with gpu_keepalive:
+            with Run().context(RunConfig(nranks=1, experiment='wikipedia')):
+                config = ColBERTConfig(doc_maxlen=doc_maxlen, nbits=nbits, kmeans_niters=4)
+                indexer = Indexer(checkpoint=checkpoint, config=config)
+                indexer.index(name=index_name, collection=corpus_path, overwrite=True)
         print(indexer.get_index())
 
 
