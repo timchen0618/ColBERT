@@ -147,7 +147,7 @@ if __name__ == '__main__':
             with Run().context(RunConfig(nranks=1, experiment='wikipedia')):
                 config = ColBERTConfig(doc_maxlen=doc_maxlen, nbits=nbits, kmeans_niters=4)
                 indexer = Indexer(checkpoint=checkpoint, config=config)
-                indexer.index(name=index_name, collection=corpus_path, overwrite=True)
+                indexer.index(name=index_name, collection=corpus_path, overwrite=False)
         print(indexer.get_index())
 
 
