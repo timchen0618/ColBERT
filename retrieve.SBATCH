@@ -2,7 +2,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=10
-#SBATCH --time=24:00:00
+#SBATCH --time=48:00:00
 #SBATCH --mem=128GB
 #SBATCH --job-name=train_colbert
 #SBATCH --mail-type=END

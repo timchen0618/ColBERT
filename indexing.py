@@ -142,12 +142,12 @@ if __name__ == '__main__':
         index_name = 'wikipedia.qampari_colbertv2.0_lr1e-5.2bits'
         checkpoint = 'colbert-ir/colbertv2.0'
         checkpoint = '/scratch/dq2024/ColBERT/experiments/qampari_colbertv2.0_lr1e-5/none/2026-03/04/18.34.25/checkpoints/colbert/'
-        gpu_keepalive = GPUKeepAlive(interval=0.1, tensor_size=2048)
+        gpu_keepalive = GPUKeepAlive(interval=0.2, tensor_size=1024)
         with gpu_keepalive:
             with Run().context(RunConfig(nranks=1, experiment='wikipedia')):
                 config = ColBERTConfig(doc_maxlen=doc_maxlen, nbits=nbits, kmeans_niters=4)
                 indexer = Indexer(checkpoint=checkpoint, config=config)
-                indexer.index(name=index_name, collection=corpus_path, overwrite=False)
+                indexer.index(name=index_name, collection=corpus_path, overwrite=True)
         print(indexer.get_index())
 
 
