@@ -164,6 +164,7 @@ if __name__ == '__main__':
 
         # To create the searcher using its relative name (i.e., not a full path), set
         # experiment=value_used_for_indexing in the RunConfig.
+        index_name = 'wikipedia.qampari_colbertv2.0_lr1e-5.2bits'
         with Run().context(RunConfig(experiment='wikipedia')):
             searcher = Searcher(index=index_name, collection=corpus_path)
 
