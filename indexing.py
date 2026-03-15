@@ -164,6 +164,7 @@ if __name__ == '__main__':
 
         # To create the searcher using its relative name (i.e., not a full path), set
         # experiment=value_used_for_indexing in the RunConfig.
+        # index_name = 'wikipedia.chunks_v5.2bits'
         index_name = 'wikipedia.qampari_colbertv2.0_lr1e-5.2bits'
         with Run().context(RunConfig(experiment='wikipedia')):
             searcher = Searcher(index=index_name, collection=corpus_path)
@@ -196,7 +197,8 @@ if __name__ == '__main__':
         if args.dataset in ["ambigqa", "ambigqa_single", "qampari", "qampari_full"]:
             output_path = f'/scratch/dq2024/ColBERT/outputs/{args.dataset}.jsonl'
         else:
-            output_path = f'/scratch/dq2024/ColBERT/outputs/' + str(Path(args.dataset).stem) + '_retrieved.jsonl'
+            #output_path = f'/scratch/dq2024/ColBERT/outputs/' + str(Path(args.dataset).stem) + '_retrieved.jsonl'
+            output_path = f'/scratch/dq2024/ColBERT/outputs/FT_Di_round2_retrieved.jsonl'
         with open(output_path, 'w') as f:
             for output in outputs:
                 f.write(json.dumps(output) + '\n')
