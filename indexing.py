@@ -166,7 +166,7 @@ if __name__ == '__main__':
         # experiment=value_used_for_indexing in the RunConfig.
         # index_name = 'wikipedia.chunks_v5.2bits'
         index_name = 'wikipedia.qampari_colbertv2.0_lr1e-5.2bits'
-        with Run().context(RunConfig(nranks=2, experiment='wikipedia')):
+        with Run().context(RunConfig(nranks=1, experiment='wikipedia')):
             config = ColBERTConfig(query_maxlen=512)
             searcher = Searcher(index=index_name, collection=corpus_path, config=config)
 

@@ -3,13 +3,13 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=10
 #SBATCH --time=2:00:00
-#SBATCH --mem=512GB
+#SBATCH --mem=400GB
 #SBATCH --job-name=r
 #SBATCH --mail-type=END
 #SBATCH --mail-user=dq2024@nyu.edu
 #SBATCH --output=out_files/ft_retrieve.out
 #SBATCH --account=torch_pr_152_courant
-#SBATCH --gres=gpu:2
+#SBATCH --gres=gpu:1
 
 SINGULARITY_IMAGE=/share/apps/images/cuda12.8.1-cudnn9.8.0-ubuntu24.04.2.sif
 OVERLAY_FILE=/scratch/dq2024/colbert.ext3
