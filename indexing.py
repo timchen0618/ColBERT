@@ -167,7 +167,8 @@ if __name__ == '__main__':
         # index_name = 'wikipedia.chunks_v5.2bits'
         index_name = 'wikipedia.qampari_colbertv2.0_lr1e-5.2bits'
         with Run().context(RunConfig(experiment='wikipedia')):
-            searcher = Searcher(index=index_name, collection=corpus_path)
+            config = ColBERTConfig(query_maxlen=512)
+            searcher = Searcher(index=index_name, collection=corpus_path, config=config)
 
         for query in tqdm(queries):
             print(f"#> {query}")
@@ -198,7 +199,7 @@ if __name__ == '__main__':
             output_path = f'/scratch/dq2024/ColBERT/outputs/{args.dataset}.jsonl'
         else:
             #output_path = f'/scratch/dq2024/ColBERT/outputs/' + str(Path(args.dataset).stem) + '_retrieved.jsonl'
-            output_path = f'/scratch/dq2024/ColBERT/outputs/FT_Di_round2_retrieved.jsonl'
+            output_path = f'/scratch/dq2024/diverse_retriever/eval/multi_round_pipeline/qwen3_verifier/colbert/retrieved_files/round2_retrieved.json'
         with open(output_path, 'w') as f:
             for output in outputs:
                 f.write(json.dumps(output) + '\n')
