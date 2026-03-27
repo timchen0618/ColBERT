@@ -167,7 +167,7 @@ if __name__ == '__main__':
         index_name = 'wikipedia.chunks_v5.2bits'
         #index_name = 'wikipedia.qampari_colbertv2.0_lr1e-5.2bits'
         with Run().context(RunConfig(nranks=1, experiment='wikipedia')):
-            config = ColBERTConfig(query_maxlen=128)
+            config = ColBERTConfig(query_maxlen=50)
             searcher = Searcher(index=index_name, collection=corpus_path, config=config)
 
         for query in tqdm(queries):
